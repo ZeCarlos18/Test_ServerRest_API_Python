@@ -1,100 +1,199 @@
+import uuid
 import requests
+import pytest
 
 ENDPOINT = "https://compassuol.serverest.dev/"
 
-def test_logar_usuario():
-    payload = new_payload()
-
-    criar_usuario_resposta = criar_usuario(payload)
-    print(descobrir_status_code(criar_usuario_resposta.status_code))
-
-    login = {"email": payload["email"], "password": payload["password"]}
-    response = logar_usuario(login)
-    assert response.status_code == 200
-
 def test_listar_usuarios():
-    payload = new_payload()
-
-    criar_usuario_resposta = criar_usuario(payload)
-    print(descobrir_status_code(criar_usuario_resposta.status_code))
-
     response = listar_usuarios()
-    data = response.json()
     assert response.status_code == 200
-    usuarios = data["usuarios"]
-    for usuario in usuarios:
-        if usuario["nome"] == payload["nome"] and usuario["email"] == payload["email"]:
-            print(data["usuarios"][usuarios.index(usuario)])
+    data = response.json()
+    
+    # Validar estrutura
+    assert "quantidade" in data
+    assert "usuarios" in data
+    assert isinstance(data["usuarios"], list)
+    assert isinstance(data["quantidade"], int)
+    
+    for usuario in data["usuarios"]:
+        print(f"ID: {usuario['_id']}, Nome: {usuario['nome']}, Email: {usuario['email']}")
 
-def test_criar_usuario():
+def test_listar_usuarios_por_nome():
+    payload = new_payload()
+    criar_usuario(payload)
+
+    response = listar_usuarios(nome=payload["nome"])
+    assert response.status_code == 200
+    data = response.json()
+    usuarios = data["usuarios"]
+    
+    # Validar que retornou resultados
+    assert len(usuarios) > 0
+    assert any(u["nome"] == payload["nome"] for u in usuarios)
+    
+    print(f"Usuários encontrados com o nome '{payload['nome']}'")
+    for usuario in usuarios:
+        print(f"ID: {usuario['_id']}, Nome: {usuario['nome']}, Email: {usuario['email']}")
+
+def test_listar_usuarios_por_email():
+    payload = new_payload()
+    criar_usuario(payload)
+
+    response = listar_usuarios(email=payload["email"])
+    assert response.status_code == 200
+    data = response.json()
+    usuarios = data["usuarios"]
+    
+    # Validar que retornou exatamente 1 resultado
+    assert len(usuarios) == 1
+    assert usuarios[0]["email"] == payload["email"]
+    
+    print(f"Usuários encontrados com o email '{payload['email']}'")
+    for usuario in usuarios:
+        print(f"ID: {usuario['_id']}, Nome: {usuario['nome']}, Email: {usuario['email']}")
+
+def test_criar_usuario_com_sucesso():
     payload = new_payload()
     response = criar_usuario(payload)
-    assert response.status_code == 201 or response.status_code == 400    
-    if response.status_code == 201 or response.status_code == 400:
-        print(response.json())
+    assert response.status_code == 201 
+    data = response.json()
+    
+    # Validar estrutura e dados retornados
+    assert "_id" in data
+    assert data["email"] == payload["email"]
+    assert data["nome"] == payload["nome"]
+    assert data["password"] == payload["password"]
+    assert data["administrador"] == payload["administrador"]
+    
+    print(response.json())
+
+def test_criar_usuario_com_email_duplicado():
+    payload = new_payload()
+    usuario_criado = criar_usuario(payload)
+    assert usuario_criado.status_code == 201
+    print(usuario_criado.json())
+    
+    print("Tentando criar um novo usuario com o mesmo email:")
+    response = criar_usuario(payload)
+    assert response.status_code == 400
+    data = response.json()
+    
+    # Validar mensagem de erro
+    assert "message" in data
+    assert "email" in data["message"].lower()
+    
+    print(response.json())
+
+def test_criar_usuario_sem_nome():
+    payload = {
+        "email" : f"teste{str(uuid.uuid4().hex[::4])}@gmail.com",
+        "password" : "123456",
+        "administrador" : "true",
+    }
+    response = criar_usuario(payload)
+    assert response.status_code == 400
+    data = response.json()
+    
+    # Validar que o erro é sobre o campo faltante
+    assert "message" in data
+    assert "nome" in data["message"].lower()
+    
+    print("Tentando criar um novo usuario sem nome:")
+    print(response.json())
 
 def test_buscar_usuario_por_id():
     payload = new_payload()
-
-    criar_usuario_resposta = criar_usuario(payload)
-    print(descobrir_status_code(criar_usuario_resposta.status_code))
+    criar_usuario(payload)
 
     listar_response = listar_usuarios()
-    data = listar_response.json()
-    usuarios = data["usuarios"]
+    usuarios = listar_response.json()["usuarios"]
     id_usuario = pegar_id_usuario(usuarios, payload)
     assert id_usuario is not None
 
     response = buscar_usuario_por_id(id_usuario)
     assert response.status_code == 200
+    data = response.json()
+    
+    # Validar estrutura completa
+    assert data["_id"] == id_usuario
+    assert data["email"] == payload["email"]
+    assert data["nome"] == payload["nome"]
+    assert data["password"] == payload["password"]
+    assert "administrador" in data
+    
+    print(response.json())
+
+def test_buscar_usuario_por_id_invalido():
+    response = buscar_usuario_por_id("invalid_id")
+    assert response.status_code == 400
+    data = response.json()
+    
+    # Validar mensagem de erro
+    assert "message" in data
+    assert data["message"] is not None
+    
     print(response.json())
 
 def test_excluir_usuario():
     payload = new_payload()
-
-    criar_usuario_resposta = criar_usuario(payload)
-    print(descobrir_status_code(criar_usuario_resposta.status_code))
+    criar_usuario(payload)
 
     listar_response = listar_usuarios()
-    data = listar_response.json()
-    usuarios = data["usuarios"]
+    usuarios = listar_response.json()["usuarios"]
     id_usuario = pegar_id_usuario(usuarios, payload)
     assert id_usuario is not None
+    print(f"Usuario criado com sucesso. Excluindo o usuário: {buscar_usuario_por_id(id_usuario).json()}")
 
-    excluir_response = excluir_usuario(id_usuario)
-    assert excluir_response.status_code == 200
-    print(excluir_response.json())
+    response = excluir_usuario(id_usuario)
+    assert response.status_code == 200
+    data = response.json()
+    
+    # Validar confirmação de exclusão
+    assert "message" in data
+    
+    print(response.json())
 
 def test_editar_usuario():
     payload = new_payload()
-
-    criar_usuario_resposta = criar_usuario(payload)
-    print(descobrir_status_code(criar_usuario_resposta.status_code))
+    criar_usuario(payload)
 
     listar_response = listar_usuarios()
-    data = listar_response.json()
-    usuarios = data["usuarios"]
+    usuarios = listar_response.json()["usuarios"]
     id_usuario = pegar_id_usuario(usuarios, payload)
     assert id_usuario is not None
+    print(f"Usuario criado com sucesso. Dados do usuario: {buscar_usuario_por_id(id_usuario).json()}")
 
     novo_payload = {
-        "nome" : "teste_2026-06-11 - Atualizado",
-        "email" : "teste_2026-06-11@gmail.com",
+        "nome" : f"testeDeJose{str(uuid.uuid4().hex[::4])} - Atualizado",
+        "email" : f"teste{str(uuid.uuid4().hex[::4])}@gmail.com",
         "password" : "123456",
         "administrador" : "true",
     }
 
     response = editar_usuario(id_usuario, novo_payload)
     assert response.status_code == 200
+    data = response.json()
+    
+    # Validar que os dados foram realmente atualizados
+    assert data["nome"] == novo_payload["nome"]
+    assert data["email"] == novo_payload["email"]
+    assert data["_id"] == id_usuario
+    
     print(response.json())
+    print(f"Usuario editado com sucesso. Dados atualizados do usuario: {buscar_usuario_por_id(id_usuario).json()}")
 
 
-
-def logar_usuario(payload):
-    return requests.post(ENDPOINT + "/login", json=payload)
-
-def listar_usuarios():
-    return requests.get(ENDPOINT + "/usuarios")
+def listar_usuarios(nome=None, email=None, _id=None, administrador=None):
+    params = {}
+    if nome:
+        params["nome"] = nome
+    if email:
+        params["email"] = email
+    if _id:
+        params["_id"] = _id
+    if administrador:
+        params["administrador"] = administrador
+    return requests.get(ENDPOINT + "/usuarios", params=params)
 
 def criar_usuario(payload):
     return requests.post(ENDPOINT + "/usuarios", json=payload)
@@ -108,16 +207,6 @@ def excluir_usuario(user_id):
 def editar_usuario(user_id, payload):
     return requests.put(ENDPOINT + f"/usuarios/{user_id}", json=payload)
 
-def descobrir_status_code(status_code):
-    if status_code == 200:
-        return "Ok"
-    elif status_code == 201:
-        return "Usuario Criado"
-    elif status_code == 400:
-        return "Usuario já existe"
-    elif status_code == 404:
-        return "Não encontrado"
-    
 def pegar_id_usuario(usuarios, payload):
     for usuario in usuarios:
         if usuario["nome"] == payload["nome"] and usuario["email"] == payload["email"]:
@@ -126,8 +215,8 @@ def pegar_id_usuario(usuarios, payload):
     
 def new_payload():
     return {
-        "nome" : "teste_2026-06-11",
-        "email" : "teste_2026-06-11@gmail.com",
+        "nome" : f"testeDeJose{str(uuid.uuid4().hex[::4])}",
+        "email" : f"teste{str(uuid.uuid4().hex[::4])}@gmail.com",
         "password" : "123456",
         "administrador" : "true",
     }
