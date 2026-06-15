@@ -1,8 +1,18 @@
 import uuid
 import requests
 import pytest
+import jsonschema
 
 ENDPOINT = "https://compassuol.serverest.dev/"
+
+SCHEMA_LOGIN_COM_SUCESSO = {
+    "type": "object",
+    "required": ["message", "authorization"],
+    "properties": {
+        "message": {"type": "string"},
+        "authorization": {"type": "string"},
+    },
+}
 
 def test_login_com_sucesso():
     payload = new_payload()
@@ -21,6 +31,21 @@ def test_login_com_sucesso():
     assert data["authorization"].startswith("Bearer ")
 
     print(response.json())
+
+def test_schema_login_com_sucesso():
+    payload = new_payload()
+    criar_usuario(payload)
+
+    login_payload = {
+        "email": payload["email"],
+        "password": payload["password"],
+    }
+    response = fazer_login(login_payload)
+    assert response.status_code == 200
+    data = response.json()
+
+    jsonschema.validate(instance=data, schema=SCHEMA_LOGIN_COM_SUCESSO)
+    print("Resposta de POST /login (sucesso) é válida conforme o JSON Schema esperado")
 
 def test_login_com_senha_errada():
     payload = new_payload()

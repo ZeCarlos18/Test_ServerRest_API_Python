@@ -1,8 +1,31 @@
 import uuid
 import requests
 import pytest
+import jsonschema
 
 ENDPOINT = "https://compassuol.serverest.dev/"
+
+SCHEMA_LISTAR_USUARIOS = {
+    "type": "object",
+    "required": ["quantidade", "usuarios"],
+    "properties": {
+        "quantidade": {"type": "integer"},
+        "usuarios": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["nome", "email", "password", "administrador", "_id"],
+                "properties": {
+                    "nome": {"type": "string"},
+                    "email": {"type": "string"},
+                    "password": {"type": "string"},
+                    "administrador": {"type": "string"},
+                    "_id": {"type": "string"},
+                },
+            },
+        },
+    },
+}
 
 def test_listar_usuarios():
     response = listar_usuarios()
@@ -16,6 +39,14 @@ def test_listar_usuarios():
     
     for usuario in data["usuarios"]:
         print(f"ID: {usuario['_id']}, Nome: {usuario['nome']}, Email: {usuario['email']}")
+
+def test_schema_listar_usuarios():
+    response = listar_usuarios()
+    assert response.status_code == 200
+    data = response.json()
+
+    jsonschema.validate(instance=data, schema=SCHEMA_LISTAR_USUARIOS)
+    print("Resposta de GET /usuarios é válida conforme o JSON Schema esperado")
 
 def test_listar_usuarios_por_nome():
     payload = new_payload()

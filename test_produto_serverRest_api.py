@@ -1,8 +1,31 @@
 import uuid
 import requests
 import pytest
+import jsonschema
 
 ENDPOINT = "https://compassuol.serverest.dev/"
+
+SCHEMA_LISTAR_PRODUTOS = {
+    "type": "object",
+    "required": ["quantidade", "produtos"],
+    "properties": {
+        "quantidade": {"type": "integer"},
+        "produtos": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["nome", "preco", "descricao", "quantidade", "_id"],
+                "properties": {
+                    "nome": {"type": "string"},
+                    "preco": {"type": "integer"},
+                    "descricao": {"type": "string"},
+                    "quantidade": {"type": "integer"},
+                    "_id": {"type": "string"},
+                },
+            },
+        },
+    },
+}
 
 def test_listar_produtos():
     response = listar_produtos()
@@ -16,6 +39,14 @@ def test_listar_produtos():
 
     for produto in data["produtos"]:
         print(f"ID: {produto['_id']}, Nome: {produto['nome']}, Preço: {produto['preco']}")
+
+def test_schema_listar_produtos():
+    response = listar_produtos()
+    assert response.status_code == 200
+    data = response.json()
+
+    jsonschema.validate(instance=data, schema=SCHEMA_LISTAR_PRODUTOS)
+    print("Resposta de GET /produtos é válida conforme o JSON Schema esperado")
 
 def test_listar_produtos_por_nome():
     token = obter_token_admin()
