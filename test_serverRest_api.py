@@ -9,7 +9,6 @@ def test_listar_usuarios():
     assert response.status_code == 200
     data = response.json()
     
-    # Validar estrutura
     assert "quantidade" in data
     assert "usuarios" in data
     assert isinstance(data["usuarios"], list)
@@ -27,7 +26,6 @@ def test_listar_usuarios_por_nome():
     data = response.json()
     usuarios = data["usuarios"]
     
-    # Validar que retornou resultados
     assert len(usuarios) > 0
     assert any(u["nome"] == payload["nome"] for u in usuarios)
     
@@ -44,7 +42,6 @@ def test_listar_usuarios_por_email():
     data = response.json()
     usuarios = data["usuarios"]
     
-    # Validar que retornou exatamente 1 resultado
     assert len(usuarios) == 1
     assert usuarios[0]["email"] == payload["email"]
     
@@ -58,7 +55,6 @@ def test_criar_usuario_com_sucesso():
     assert response.status_code == 201 
     data = response.json()
     
-    # Validar estrutura e dados retornados
     assert "_id" in data
     assert data["email"] == payload["email"]
     assert data["nome"] == payload["nome"]
@@ -78,7 +74,6 @@ def test_criar_usuario_com_email_duplicado():
     assert response.status_code == 400
     data = response.json()
     
-    # Validar mensagem de erro
     assert "message" in data
     assert "email" in data["message"].lower()
     
@@ -93,8 +88,7 @@ def test_criar_usuario_sem_nome():
     response = criar_usuario(payload)
     assert response.status_code == 400
     data = response.json()
-    
-    # Validar que o erro é sobre o campo faltante
+
     assert "message" in data
     assert "nome" in data["message"].lower()
     
@@ -114,7 +108,6 @@ def test_buscar_usuario_por_id():
     assert response.status_code == 200
     data = response.json()
     
-    # Validar estrutura completa
     assert data["_id"] == id_usuario
     assert data["email"] == payload["email"]
     assert data["nome"] == payload["nome"]
@@ -128,7 +121,6 @@ def test_buscar_usuario_por_id_invalido():
     assert response.status_code == 400
     data = response.json()
     
-    # Validar mensagem de erro
     assert "message" in data
     assert data["message"] is not None
     
@@ -148,7 +140,6 @@ def test_excluir_usuario():
     assert response.status_code == 200
     data = response.json()
     
-    # Validar confirmação de exclusão
     assert "message" in data
     
     print(response.json())
@@ -174,7 +165,6 @@ def test_editar_usuario():
     assert response.status_code == 200
     data = response.json()
     
-    # Validar que os dados foram realmente atualizados
     assert data["nome"] == novo_payload["nome"]
     assert data["email"] == novo_payload["email"]
     assert data["_id"] == id_usuario
