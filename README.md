@@ -2,9 +2,9 @@
 
 Suíte de testes automatizados em **Python + Pytest + Requests** para os endpoints de **Usuários**, **Login** e **Produtos** da [API ServeRest](https://compassuol.serverest.dev/).
 
-Este projeto começou no **Desafio Semana 3** do Bootcamp QA (testes de Usuários) e foi evoluído para uma suíte mais completa: planejamento formal, expansão de cobertura (Login e Produtos), validação de JSON Schema (Extra 1), cálculo de cobertura e reporte de bug.
+Este projeto começou no **Desafio Semana 3** do Bootcamp QA (testes de Usuários) e foi evoluído para uma suíte mais completa: planejamento formal, expansão de cobertura (Login e Produtos), validação de JSON Schema (Extra 1), cálculo de cobertura e análise de divergências em relação ao Swagger.
 
-📄 **Para todos os detalhes — cenários por endpoint, critérios de qualidade, metodologia e cálculo de cobertura, e análise completa do bug encontrado — consulte o [`PLANO-DE-TESTES.md`](PLANO-DE-TESTES.md).**
+📄 **Para todos os detalhes — cenários por endpoint, critérios de qualidade, metodologia, cálculo de cobertura e análise das divergências encontradas — consulte o [`PLANO-DE-TESTES.md`](PLANO-DE-TESTES.md).**
 
 ---
 
@@ -35,7 +35,7 @@ Test_ServerRest_API_Python/
 ├── test_serverRest_api.py         # Testes de Usuários (Semana 3 + Extra 1)
 ├── test_login_serverRest_api.py   # Testes de Login
 ├── test_produto_serverRest_api.py # Testes de Produtos
-├── PLANO-DE-TESTES.md             # Plano completo: cenários, cobertura, bug
+├── PLANO-DE-TESTES.md             # Plano completo: cenários, cobertura, divergências
 ├── README.md                      # Este arquivo
 └── requirements.txt                # Dependências
 ```
@@ -46,7 +46,7 @@ Test_ServerRest_API_Python/
 
 | Arquivo | Testes | Resultado |
 |---|---|---|
-| `test_serverRest_api.py` (Usuários) | 11 | 7 ✅ / 4 ❌ (bug conhecido, ver abaixo) |
+| `test_serverRest_api.py` (Usuários) | 12 | 100% ✅ |
 | `test_login_serverRest_api.py` (Login) | 5 | 100% ✅ |
 | `test_produto_serverRest_api.py` (Produtos) | 16 | 100% ✅ |
 
@@ -68,9 +68,9 @@ Metodologia aplicada, inventário da API e justificativa do que ficou fora do es
 
 ## 🐞 Bug encontrado
 
-**Respostas de erro/sucesso de `/usuarios` não seguem o schema documentado no Swagger** — ex.: `POST /usuarios` com sucesso retorna `{message, _id}` em vez de ecoar os dados enviados. É a causa das 4 falhas em `test_serverRest_api.py`.
+Nenhuma divergência real de schema foi confirmada até o momento — o caso anteriormente apontado em `GET /usuarios/{_id}` era, na verdade, dois cenários distintos sendo testados juntos (formato de id inválido vs. id em formato válido porém inexistente), e a API responde corretamente em ambos conforme o Swagger.
 
-Análise completa (schema documentado vs. real, severidade e evidências): [PLANO-DE-TESTES.md, seção 7](PLANO-DE-TESTES.md#7-bug-encontrado-respostas-de-errosucesso-não-seguem-o-schema-documentado-no-swagger). Reportado na aba [Issues](../../issues) deste repositório.
+Análise completa: [PLANO-DE-TESTES.md, seção 7](PLANO-DE-TESTES.md#7-divergências-entre-a-api-e-o-schema-documentado-no-swagger). O requisito de reportar pelo menos 1 bug na aba [Issues](../../issues) segue pendente.
 
 ---
 

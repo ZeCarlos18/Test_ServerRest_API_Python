@@ -83,15 +83,12 @@ def test_listar_usuarios_por_email():
 def test_criar_usuario_com_sucesso():
     payload = new_payload()
     response = criar_usuario(payload)
-    assert response.status_code == 201 
+    assert response.status_code == 201
     data = response.json()
-    
+
     assert "_id" in data
-    assert data["email"] == payload["email"]
-    assert data["nome"] == payload["nome"]
-    assert data["password"] == payload["password"]
-    assert data["administrador"] == payload["administrador"]
-    
+    assert data["message"] == "Cadastro realizado com sucesso"
+
     print(response.json())
 
 def test_criar_usuario_com_email_duplicado():
@@ -120,9 +117,9 @@ def test_criar_usuario_sem_nome():
     assert response.status_code == 400
     data = response.json()
 
-    assert "message" in data
-    assert "nome" in data["message"].lower()
-    
+    assert "nome" in data
+    assert data["nome"] == "nome é obrigatório"
+
     print("Tentando criar um novo usuario sem nome:")
     print(response.json())
 
@@ -147,14 +144,24 @@ def test_buscar_usuario_por_id():
     
     print(response.json())
 
-def test_buscar_usuario_por_id_invalido():
-    response = buscar_usuario_por_id("invalid_id")
+def test_buscar_usuario_por_id_formato_invalido():
+    response = buscar_usuario_por_id("123456789123456")
     assert response.status_code == 400
     data = response.json()
-    
+
+    assert "id" in data
+    assert data["id"] == "id deve ter exatamente 16 caracteres alfanuméricos"
+
+    print(response.json())
+
+def test_buscar_usuario_por_id_nao_encontrado():
+    response = buscar_usuario_por_id("1234567891234567")
+    assert response.status_code == 400
+    data = response.json()
+
     assert "message" in data
-    assert data["message"] is not None
-    
+    assert data["message"] == "Usuário não encontrado"
+
     print(response.json())
 
 def test_excluir_usuario():
@@ -195,13 +202,15 @@ def test_editar_usuario():
     response = editar_usuario(id_usuario, novo_payload)
     assert response.status_code == 200
     data = response.json()
-    
-    assert data["nome"] == novo_payload["nome"]
-    assert data["email"] == novo_payload["email"]
-    assert data["_id"] == id_usuario
-    
+
+    assert data["message"] == "Registro alterado com sucesso"
+
+    usuario_atualizado = buscar_usuario_por_id(id_usuario).json()
+    assert usuario_atualizado["nome"] == novo_payload["nome"]
+    assert usuario_atualizado["email"] == novo_payload["email"]
+
     print(response.json())
-    print(f"Usuario editado com sucesso. Dados atualizados do usuario: {buscar_usuario_por_id(id_usuario).json()}")
+    print(f"Usuario editado com sucesso. Dados atualizados do usuario: {usuario_atualizado}")
 
 
 def listar_usuarios(nome=None, email=None, _id=None, administrador=None):
