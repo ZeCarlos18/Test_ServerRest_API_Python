@@ -15,7 +15,7 @@ Garantir, por meio de testes automatizados de API (Python + Pytest + Requests), 
 - Regras de autorização (rotas exclusivas para administradores);
 - Estrutura e tipos dos dados retornados pela API.
 
-A suíte deve servir como base de regressão, podendo ser executada localmente e (na versão com o Extra 2) automaticamente via CI a cada push.
+A suíte deve servir como base de regressão, podendo ser executada localmente e automaticamente via CI a cada push.
 
 ---
 
