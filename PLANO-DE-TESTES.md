@@ -214,7 +214,7 @@ Bugs descobertos por investigação manual (chamadas HTTP diretas, fora da suít
 | **Evidência** | `DELETE /usuarios/{id_existente}` (sem header `Authorization`) → `200 OK` `{"message": "Registro excluído com sucesso"}`. Confirmado que o usuário é de fato removido (GET subsequente retorna `{"message": "Usuário não encontrado"}`). |
 | **Referência de comportamento correto** | `DELETE /produtos/{_id}` sem token → `401 Unauthorized`. O endpoint de produtos implementa corretamente a proteção ausente em `/usuarios`. |
 | **Impacto** | Qualquer pessoa com o ID de um usuário pode excluí-lo permanentemente sem credenciais. |
-| **Reportado em** | [Issue #1](../../issues) — *DELETE /usuarios/{id} não requer autenticação* |
+| **Reportado em** | [Issue #1](https://github.com/ZeCarlos18/Test_ServerRest_API_Python/issues/1) — *DELETE /usuarios/{id} não requer autenticação* |
 
 **Comparativo direto:**
 
@@ -237,7 +237,7 @@ Bugs descobertos por investigação manual (chamadas HTTP diretas, fora da suít
 | **Evidência** | (1) Criar usuário com `"administrador": "false"`. (2) Enviar `PUT /usuarios/{id}` sem token, com body `{"administrador": "true", ...}`. (3) `GET /usuarios/{id}` confirma `"administrador": "true"`. A escalada de privilégios é efetivada. |
 | **Referência de comportamento correto** | `PUT /produtos/{_id}` sem token → `401 Unauthorized`. O endpoint de produtos implementa corretamente a proteção ausente em `/usuarios`. |
 | **Impacto** | Qualquer pessoa com o ID de um usuário pode: (a) alterar nome, e-mail ou senha de qualquer usuário; (b) promover um usuário comum a administrador, obtendo acesso total às rotas de `/produtos`. |
-| **Reportado em** | [Issue #2](../../issues) — *PUT /usuarios/{id} não requer autenticação e permite escalada de privilégios* |
+| **Reportado em** | [Issue #2](https://github.com/ZeCarlos18/Test_ServerRest_API_Python/issues/2) — *PUT /usuarios/{id} não requer autenticação e permite escalada de privilégios* |
 
 **Comparativo direto:**
 

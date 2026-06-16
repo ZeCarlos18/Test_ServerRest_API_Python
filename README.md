@@ -72,8 +72,8 @@ Dois bugs críticos de ausência de autenticação foram encontrados por investi
 
 | ID | Endpoint | Descrição | Severidade |
 |---|---|---|---|
-| [BUG-01](../../issues) | `DELETE /usuarios/{_id}` | Exclusão de qualquer usuário sem token — deveria exigir `401`/`403` | Crítica |
-| [BUG-02](../../issues) | `PUT /usuarios/{_id}` | Edição de qualquer usuário sem token, incluindo escalada de privilégios (`administrador: false → true`) — deveria exigir `401`/`403` | Crítica |
+| [BUG-01](https://github.com/ZeCarlos18/Test_ServerRest_API_Python/issues/1) | `DELETE /usuarios/{_id}` | Exclusão de qualquer usuário sem token — deveria exigir `401`/`403` | Crítica |
+| [BUG-02](https://github.com/ZeCarlos18/Test_ServerRest_API_Python/issues/2) | `PUT /usuarios/{_id}` | Edição de qualquer usuário sem token, incluindo escalada de privilégios (`administrador: false → true`) — deveria exigir `401`/`403` | Crítica |
 
 Em ambos os casos, o endpoint equivalente de `/produtos` (`DELETE /produtos/{_id}` e `PUT /produtos/{_id}`) implementa corretamente a proteção de autenticação, evidenciando a inconsistência.
 
