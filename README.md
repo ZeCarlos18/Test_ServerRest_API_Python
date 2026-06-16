@@ -66,11 +66,18 @@ Metodologia aplicada, inventário da API e justificativa do que ficou fora do es
 
 ---
 
-## 🐞 Bug encontrado
+## 🐞 Bugs encontrados
 
-Nenhuma divergência real de schema foi confirmada até o momento — o caso anteriormente apontado em `GET /usuarios/{_id}` era, na verdade, dois cenários distintos sendo testados juntos (formato de id inválido vs. id em formato válido porém inexistente), e a API responde corretamente em ambos conforme o Swagger.
+Dois bugs críticos de ausência de autenticação foram encontrados por investigação manual no endpoint `/usuarios` e reportados na aba Issues do GitHub:
 
-Análise completa: [PLANO-DE-TESTES.md, seção 7](PLANO-DE-TESTES.md#7-divergências-entre-a-api-e-o-schema-documentado-no-swagger). O requisito de reportar pelo menos 1 bug na aba [Issues](../../issues) segue pendente.
+| ID | Endpoint | Descrição | Severidade |
+|---|---|---|---|
+| [BUG-01](../../issues) | `DELETE /usuarios/{_id}` | Exclusão de qualquer usuário sem token — deveria exigir `401`/`403` | Crítica |
+| [BUG-02](../../issues) | `PUT /usuarios/{_id}` | Edição de qualquer usuário sem token, incluindo escalada de privilégios (`administrador: false → true`) — deveria exigir `401`/`403` | Crítica |
+
+Em ambos os casos, o endpoint equivalente de `/produtos` (`DELETE /produtos/{_id}` e `PUT /produtos/{_id}`) implementa corretamente a proteção de autenticação, evidenciando a inconsistência.
+
+Documentação completa dos bugs (comportamento esperado vs. observado, evidências e comparativo): [PLANO-DE-TESTES.md, seção 8](PLANO-DE-TESTES.md#8-bugs-confirmados-na-api).
 
 ---
 

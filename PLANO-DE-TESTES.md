@@ -195,11 +195,61 @@ O mesmo padrão (`{<campo>: "<campo> é obrigatório"}`) ocorre também em `/log
 
 ### 7.3. Nenhuma divergência de schema confirmada
 
-Após a revisão acima, **nenhuma das divergências originalmente apontadas se confirmou como bug real** — todas eram erro de asserção ou de cenário nos testes, já corrigidos. O requisito da seção 3.1 de reportar pelo menos 1 bug na aba [Issues](../../issues) segue pendente; será necessário investigar outros endpoints/cenários (ex.: `/produtos`, `/carrinhos`) para encontrar uma divergência real a reportar.
+Após a revisão acima, **nenhuma das divergências originalmente apontadas se confirmou como bug real** — todas eram erro de asserção ou de cenário nos testes, já corrigidos.
 
 ---
 
-## 8. Histórico de atualizações
+## 8. Bugs confirmados na API
+
+Bugs descobertos por investigação manual (chamadas HTTP diretas, fora da suíte automatizada de regressão), comparando o comportamento real da API com o comportamento esperado segundo as boas práticas de REST e a consistência interna da própria API (endpoint `/produtos` como referência de implementação correta).
+
+### 8.1. [BUG-01] `DELETE /usuarios/{_id}` não exige autenticação — exclusão anônima de usuário
+
+| Item | Detalhe |
+|---|---|
+| **Endpoint** | `DELETE /usuarios/{_id}` |
+| **Severidade** | Crítica |
+| **Comportamento esperado** | Retornar `401 Unauthorized` quando nenhum token é enviado; retornar `403 Forbidden` quando o token pertence a um usuário não administrador |
+| **Comportamento observado** | Retorna `200 OK` com `{"message": "Registro excluído com sucesso"}` sem nenhum token no header `Authorization` |
+| **Evidência** | `DELETE /usuarios/{id_existente}` (sem header `Authorization`) → `200 OK` `{"message": "Registro excluído com sucesso"}`. Confirmado que o usuário é de fato removido (GET subsequente retorna `{"message": "Usuário não encontrado"}`). |
+| **Referência de comportamento correto** | `DELETE /produtos/{_id}` sem token → `401 Unauthorized`. O endpoint de produtos implementa corretamente a proteção ausente em `/usuarios`. |
+| **Impacto** | Qualquer pessoa com o ID de um usuário pode excluí-lo permanentemente sem credenciais. |
+| **Reportado em** | [Issue #X](../../issues) — *DELETE /usuarios/{id} não requer autenticação* |
+
+**Comparativo direto:**
+
+| Cenário | `DELETE /produtos/{_id}` | `DELETE /usuarios/{_id}` |
+|---|---|---|
+| Sem token | `401` ✅ | `200` ❌ BUG |
+| Token de não-admin | `403` ✅ | `200` ❌ BUG |
+| Token de admin | `200` ✅ | `200` ✅ |
+
+---
+
+### 8.2. [BUG-02] `PUT /usuarios/{_id}` não exige autenticação — edição anônima com escalada de privilégios
+
+| Item | Detalhe |
+|---|---|
+| **Endpoint** | `PUT /usuarios/{_id}` |
+| **Severidade** | Crítica |
+| **Comportamento esperado** | Retornar `401 Unauthorized` quando nenhum token é enviado; retornar `403 Forbidden` quando o token pertence a um usuário não administrador |
+| **Comportamento observado** | Retorna `200 OK` com `{"message": "Registro alterado com sucesso"}` sem nenhum token no header `Authorization`, aplicando todas as alterações enviadas no body — inclusive o campo `administrador` |
+| **Evidência** | (1) Criar usuário com `"administrador": "false"`. (2) Enviar `PUT /usuarios/{id}` sem token, com body `{"administrador": "true", ...}`. (3) `GET /usuarios/{id}` confirma `"administrador": "true"`. A escalada de privilégios é efetivada. |
+| **Referência de comportamento correto** | `PUT /produtos/{_id}` sem token → `401 Unauthorized`. O endpoint de produtos implementa corretamente a proteção ausente em `/usuarios`. |
+| **Impacto** | Qualquer pessoa com o ID de um usuário pode: (a) alterar nome, e-mail ou senha de qualquer usuário; (b) promover um usuário comum a administrador, obtendo acesso total às rotas de `/produtos`. |
+| **Reportado em** | [Issue #Y](../../issues) — *PUT /usuarios/{id} não requer autenticação e permite escalada de privilégios* |
+
+**Comparativo direto:**
+
+| Cenário | `PUT /produtos/{_id}` | `PUT /usuarios/{_id}` |
+|---|---|---|
+| Sem token | `401` ✅ | `200` ❌ BUG |
+| Token de não-admin | `403` ✅ | `200` ❌ BUG |
+| Token de admin | `200` ✅ | `200` ✅ |
+
+---
+
+## 9. Histórico de atualizações
 
 | Data | Atualização |
 |---|---|
@@ -207,3 +257,4 @@ Após a revisão acima, **nenhuma das divergências originalmente apontadas se c
 | 2026-06-15 | Implementação de `test_login_serverRest_api.py` (5 testes) e `test_produto_serverRest_api.py` (16 testes); cobertura recalculada com base na suíte real. Implementação do Extra 1 (JSON Schema) em `GET /usuarios`, `POST /login` e `GET /produtos`. README reestruturado como resumo enxuto, com este documento concentrando o detalhamento de cenários, cobertura e o bug encontrado. |
 | 2026-06-15 | Análise do bug revisada contra o `swagger.json` real: 2 das 4 falhas eram asserções incorretas em `test_criar_usuario_com_sucesso` e `test_editar_usuario` (corrigidas — a API já seguia o schema documentado). A suíte de Usuários passa 100% (11/11). A única divergência real de schema confirmada é a do `GET /usuarios/{_id}` com id inválido (seção 7.2), a ser reportada nas Issues. |
 | 2026-06-15 | Reanálise do item de `GET /usuarios/{_id}`: o cenário antes apontado como "bug" usava um id de 15 caracteres (formato inválido), que aciona uma validação de formato — não o caso `usuarioNaoEncontrado` do Swagger. Com um id de 16 caracteres alfanuméricos inexistente, a API responde exatamente `{message: "Usuário não encontrado"}`, conforme documentado. Não é bug. O teste original foi renomeado para `test_buscar_usuario_por_id_formato_invalido` e foi adicionado `test_buscar_usuario_por_id_nao_encontrado` (12 testes em `test_serverRest_api.py`, 33 na suíte). Nenhuma divergência real de schema permanece confirmada (seção 7.3); o requisito de reportar 1 bug segue pendente. |
+| 2026-06-16 | Investigação manual além da suíte automatizada: encontrados 2 bugs críticos de ausência de autenticação em `DELETE /usuarios/{_id}` e `PUT /usuarios/{_id}` (seção 8). Ambos reportados na aba Issues do GitHub. O requisito de reportar pelo menos 1 bug está cumprido. |
