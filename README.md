@@ -2,7 +2,7 @@
 
 Suíte de testes automatizados em **Python + Pytest + Requests** para os endpoints de **Usuários**, **Login** e **Produtos** da [API ServeRest](https://compassuol.serverest.dev/).
 
-Este projeto começou no **Desafio Semana 3** do Bootcamp QA (testes de Usuários) e foi evoluído para uma suíte mais completa: planejamento formal, expansão de cobertura (Login e Produtos), validação de JSON Schema (Extra 1), cálculo de cobertura e análise de divergências em relação ao Swagger.
+Este projeto começou no **Desafio Semana 3** do Bootcamp QA (testes de Usuários) e foi evoluído para uma suíte mais completa: planejamento formal, expansão de cobertura (Login e Produtos), validação de JSON Schema (Extra 1), pipeline de CI com GitHub Actions (Extra 2), cálculo de cobertura e reporte de bugs.
 
 📄 **Para todos os detalhes — cenários por endpoint, critérios de qualidade, metodologia, cálculo de cobertura e análise das divergências encontradas — consulte o [`PLANO-DE-TESTES.md`](PLANO-DE-TESTES.md).**
 
@@ -78,6 +78,12 @@ Dois bugs críticos de ausência de autenticação foram encontrados por investi
 Em ambos os casos, o endpoint equivalente de `/produtos` (`DELETE /produtos/{_id}` e `PUT /produtos/{_id}`) implementa corretamente a proteção de autenticação, evidenciando a inconsistência.
 
 Documentação completa dos bugs (comportamento esperado vs. observado, evidências e comparativo): [PLANO-DE-TESTES.md, seção 8](PLANO-DE-TESTES.md#8-bugs-confirmados-na-api).
+
+---
+
+## ⚙️ CI — GitHub Actions (Extra 2)
+
+A suíte roda automaticamente a cada `push` ou `pull request` na branch `main`, via `.github/workflows/tests.yml`. O resultado (✅ ou ❌) aparece na aba **Actions** do repositório.
 
 ---
 

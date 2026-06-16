@@ -44,7 +44,7 @@ A suíte deve servir como base de regressão, podendo ser executada localmente e
 - Cálculo de cobertura da suíte com base no artigo de referência (ver seção 6)
 - Reporte de pelo menos 1 bug encontrado durante a execução, na aba *Issues* do GitHub
 - **Extra 1** (✅ implementado): validação de estrutura de resposta via JSON Schema em 3 endpoints — `GET /usuarios` (`test_schema_listar_usuarios`), `POST /login` (`test_schema_login_com_sucesso`) e `GET /produtos` (`test_schema_listar_produtos`)
-- **Extra 2**: pipeline de GitHub Actions executando a suíte a cada push
+- **Extra 2** (✅ implementado): pipeline de GitHub Actions executando a suíte a cada push — `.github/workflows/tests.yml`
 
 ### 3.2. Fora de escopo
 
@@ -214,7 +214,7 @@ Bugs descobertos por investigação manual (chamadas HTTP diretas, fora da suít
 | **Evidência** | `DELETE /usuarios/{id_existente}` (sem header `Authorization`) → `200 OK` `{"message": "Registro excluído com sucesso"}`. Confirmado que o usuário é de fato removido (GET subsequente retorna `{"message": "Usuário não encontrado"}`). |
 | **Referência de comportamento correto** | `DELETE /produtos/{_id}` sem token → `401 Unauthorized`. O endpoint de produtos implementa corretamente a proteção ausente em `/usuarios`. |
 | **Impacto** | Qualquer pessoa com o ID de um usuário pode excluí-lo permanentemente sem credenciais. |
-| **Reportado em** | [Issue #X](../../issues) — *DELETE /usuarios/{id} não requer autenticação* |
+| **Reportado em** | [Issue #1](../../issues) — *DELETE /usuarios/{id} não requer autenticação* |
 
 **Comparativo direto:**
 
@@ -237,7 +237,7 @@ Bugs descobertos por investigação manual (chamadas HTTP diretas, fora da suít
 | **Evidência** | (1) Criar usuário com `"administrador": "false"`. (2) Enviar `PUT /usuarios/{id}` sem token, com body `{"administrador": "true", ...}`. (3) `GET /usuarios/{id}` confirma `"administrador": "true"`. A escalada de privilégios é efetivada. |
 | **Referência de comportamento correto** | `PUT /produtos/{_id}` sem token → `401 Unauthorized`. O endpoint de produtos implementa corretamente a proteção ausente em `/usuarios`. |
 | **Impacto** | Qualquer pessoa com o ID de um usuário pode: (a) alterar nome, e-mail ou senha de qualquer usuário; (b) promover um usuário comum a administrador, obtendo acesso total às rotas de `/produtos`. |
-| **Reportado em** | [Issue #Y](../../issues) — *PUT /usuarios/{id} não requer autenticação e permite escalada de privilégios* |
+| **Reportado em** | [Issue #2](../../issues) — *PUT /usuarios/{id} não requer autenticação e permite escalada de privilégios* |
 
 **Comparativo direto:**
 
@@ -258,3 +258,4 @@ Bugs descobertos por investigação manual (chamadas HTTP diretas, fora da suít
 | 2026-06-15 | Análise do bug revisada contra o `swagger.json` real: 2 das 4 falhas eram asserções incorretas em `test_criar_usuario_com_sucesso` e `test_editar_usuario` (corrigidas — a API já seguia o schema documentado). A suíte de Usuários passa 100% (11/11). A única divergência real de schema confirmada é a do `GET /usuarios/{_id}` com id inválido (seção 7.2), a ser reportada nas Issues. |
 | 2026-06-15 | Reanálise do item de `GET /usuarios/{_id}`: o cenário antes apontado como "bug" usava um id de 15 caracteres (formato inválido), que aciona uma validação de formato — não o caso `usuarioNaoEncontrado` do Swagger. Com um id de 16 caracteres alfanuméricos inexistente, a API responde exatamente `{message: "Usuário não encontrado"}`, conforme documentado. Não é bug. O teste original foi renomeado para `test_buscar_usuario_por_id_formato_invalido` e foi adicionado `test_buscar_usuario_por_id_nao_encontrado` (12 testes em `test_serverRest_api.py`, 33 na suíte). Nenhuma divergência real de schema permanece confirmada (seção 7.3); o requisito de reportar 1 bug segue pendente. |
 | 2026-06-16 | Investigação manual além da suíte automatizada: encontrados 2 bugs críticos de ausência de autenticação em `DELETE /usuarios/{_id}` e `PUT /usuarios/{_id}` (seção 8). Ambos reportados na aba Issues do GitHub. O requisito de reportar pelo menos 1 bug está cumprido. |
+| 2026-06-16 | Implementação do Extra 2: pipeline de CI criado em `.github/workflows/tests.yml` — roda `pytest -v` automaticamente a cada push ou pull request na branch `main`. |
