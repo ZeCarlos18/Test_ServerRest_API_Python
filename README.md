@@ -2,7 +2,7 @@
 
 Suíte de testes automatizados em **Python + Pytest + Requests** para os endpoints de **Usuários**, **Login** e **Produtos** da [API ServeRest](https://compassuol.serverest.dev/).
 
-Este projeto começou no **Desafio Semana 3** do Bootcamp QA (testes de Usuários) e foi evoluído para uma suíte mais completa: planejamento formal, expansão de cobertura (Login e Produtos), validação de JSON Schema (Extra 1), pipeline de CI com GitHub Actions (Extra 2), cálculo de cobertura e reporte de bugs.
+Este projeto começou no **Desafio Semana 3** do Bootcamp QA (testes de Usuários) e foi evoluído para uma suíte mais completa: planejamento formal, expansão de cobertura (Login e Produtos), validação de JSON Schema, pipeline de CI com GitHub Actions, cálculo de cobertura e reporte de bugs.
 
 📄 **Para todos os detalhes — cenários por endpoint, critérios de qualidade, metodologia, cálculo de cobertura e análise das divergências encontradas — consulte o [`PLANO-DE-TESTES.md`](PLANO-DE-TESTES.md).**
 
